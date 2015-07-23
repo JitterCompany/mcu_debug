@@ -1,0 +1,1 @@
+SUBSYSTEM=="usb", ACTION=="add", ATTR{idProduct}=="8220", ATTR{idVendor}=="0403", MODE="664", GROUP="plugdev"
