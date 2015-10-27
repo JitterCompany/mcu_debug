@@ -21,7 +21,13 @@ for line in os.popen("ps xa"):
 		break
 
 
-cmdList = ['init;', 'reset halt;','flash write_image erase '+args.binary+' '+args.address+';','reset run;','shutdown;']
+cmdList = ['init;',
+'reset halt;',
+'flash write_image erase '+args.binary+' '+args.address+';',
+'verify_image ' + args.binary +' '+args.address+';',
+'reset run;',
+'shutdown;']
+
 if(openocdFound):
 	tn = Telnet(args.ip, args.port)
 	tn.write(cmdList[0] + '\n')
@@ -33,6 +39,7 @@ if(openocdFound):
 	else:
 		print('Flashing failed\n')
 	tn.write(cmdList[3] + '\n')
+	tn.write(cmdList[4] + '\n')
 	tn.sock.close()
 
 else:
@@ -42,7 +49,7 @@ else:
 		cpu = 'lpc11uxx'
 
 	cmdStr = ''.join(cmdList)	
-	print "Programming with openOCD:"
+	print("Programming with openOCD:")
 	os.popen('openocd -f ' + cpu + '.cfg -c "'+cmdStr+'"')
 
 
