@@ -44,7 +44,7 @@ if(openocdFound):
 
 else:
 	if(int(args.address,16) != 0):
-		cpu = 'lpc4337'
+		cpu = 'lpc4337_swd'
 	else:
 		cpu = 'lpc11uxx'
 
