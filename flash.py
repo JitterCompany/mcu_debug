@@ -54,8 +54,12 @@ if not openocdFound:
     thread.deamon = True
     thread.start()
     time.sleep(0.1)
+
 tn = Telnet(args.ip, args.port)
-r = tn.expect(['Open On-Chip Debugger'])
+r = tn.expect(['Open On-Chip Debugger'], 5)
+if r[0] != 0:
+    print ("ERROR starting OpenOCD:")
+    print(r)
 
 tn.write(cmd_start + '\n')
 for cmd in cmd_flash:
