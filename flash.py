@@ -25,7 +25,7 @@ parser.add_argument("-p","--port", type=int, help="The OpenOCD port to\
         connect to", default=4444)
 args = parser.parse_args()
 
-cmd_start = 'init; reset halt'
+cmd_start = 'reset init; halt'
 cmd_flash = [('flash write_image erase '+args.binary+' '+args.address+';',
     'verify_image ' + args.binary +' '+args.address+';')]
 
