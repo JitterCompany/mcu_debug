@@ -68,13 +68,14 @@ for cmd in cmd_flash:
     while not done:
         tn.write(cmd[0] + '\n')
         tn.write(cmd[1] + '\n')
-        r = tn.expect(['verified', 'error', 'checksum', 'mismatch'], 2.5)
-        done = (r[0] == 0)
+        r = tn.expect(['verified', 'error', 'checksum', 'mismatch'], 3.5)
+        done = (r[0] == 0) # wait for 'verified'
         tries+=1
         if tries > 4:
             print('Flashing failed\n')
             break
     print('Flashing done after %d tries\n' % tries)
+time.sleep(0.01)
 tn.write(cmd_done + '\n')
 time.sleep(0.01)
 if not openocdFound:
