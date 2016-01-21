@@ -71,7 +71,7 @@ for cmd in cmd_flash:
         r = tn.expect(['verified', 'error', 'checksum', 'mismatch'], 3.5)
         done = (r[0] == 0) # wait for 'verified'
         tries+=1
-        if tries > 4:
+        if tries > 1:
             print('Flashing failed\n')
             break
     print('Flashing done after %d tries\n' % tries)
