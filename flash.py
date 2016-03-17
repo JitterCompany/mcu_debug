@@ -63,18 +63,16 @@ if r[0] != 0:
 
 tn.write(cmd_start + '\n')
 for cmd in cmd_flash:
-    done = False
-    tries = 0
-    while not done:
-        tn.write(cmd[0] + '\n')
-        tn.write(cmd[1] + '\n')
-        r = tn.expect(['verified', 'error', 'checksum', 'mismatch'], 3.5)
-        done = (r[0] == 0) # wait for 'verified'
-        tries+=1
-        if tries > 1:
-            print('Flashing failed\n')
-            break
-    print('Flashing done after %d tries\n' % tries)
+
+    tn.write(cmd[0] + '\n')
+    tn.write(cmd[1] + '\n')
+    r = tn.expect(['verified', 'error', 'checksum', 'mismatch'], 5)
+    done = (r[0] == 0) # wait for 'verified'
+
+    if done:
+        print('Flashing succesfull\n')
+    else:
+        print('Flashing failed\n')
 time.sleep(0.01)
 tn.write(cmd_done + '\n')
 time.sleep(0.01)
