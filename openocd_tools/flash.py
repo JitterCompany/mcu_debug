@@ -7,8 +7,6 @@ import argparse
 import os
 import sys
 
-os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
 parser = argparse.ArgumentParser(description="Connects to a running \
         OpenOCD server via telnet to flash a target with a given \
         binary file to a given memory address")
@@ -99,7 +97,7 @@ if not openocdFound:
         cfg = targets[0]['cpu'] + '.cfg'
 
         orig_wd = os.getcwd()
-        os.chdir(os.path.dirname(os.path.realpath(__file__)) + '/config/')
+        os.chdir(os.path.realpath(os.path.dirname(__file__)) + '/config/')
         os.popen('openocd -f ' + cfg)
         os.chdir(orig_wd)
 
