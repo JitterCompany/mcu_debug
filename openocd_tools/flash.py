@@ -34,11 +34,11 @@ if not args.config is None:
         with open(args.config, 'r') as cfg:
             for line in cfg.readlines():
                 opts = line.split()
-            targets.append({
-                'binary':   opts[0],
-                'address':  opts[1],
-                'cpu':      opts[2]
-                })
+                targets.append({
+                    'binary':   opts[0],
+                    'address':  opts[1],
+                    'cpu':      opts[2]
+                    })
     except IOError:
         print("Error: failed to open config file '%s'"
                 % args.config)
