@@ -34,24 +34,52 @@ endif()
 CPM_InitModule(${CPM_MODULE_NAME})
 
 #-----------------------------------------------------------------------
+# Required variables: these should be supplied by the parent CMakeLists
+#-----------------------------------------------------------------------
+#
+# EXE_NAME                  name of compiled executable (e.g. prog.bin)
+# EXE_PATH                  path to compiled executable (e.g. /path/prog.bin) 
+# ELF_PATH                  path to compiled elf file   (e.g. /path/prog)
+
+# FLASH_FILE                path to flash config file   (e.g. /path/flash.cfg)
+# FLASH_CFG                 name of OpenOCD config file (e.g. lpc4337_swd)
+# FLASH_ADDR                memory address to write the binary to
+#                           (e.g. 0x1A00000000, see microcontroller datasheet)
+
+# DEBUG_BREAKPOINT_LIMIT    maximum breakpoints supported (e.g. 6)
+# DEBUG_WATCHPOINT_LIMIT    maximum watchpoints supported (e.g. 4)
+
+#-----------------------------------------------------------------------
 # Project sources / settings
 #-----------------------------------------------------------------------
 
 set(MODULE_DIR "${CMAKE_CURRENT_LIST_DIR}/${CPM_MODULE_NAME}")
 set(FLASH_SCRIPT "${MODULE_DIR}/flash.py")
 
-add_custom_target(flash
+if(NOT TARGET flash)
+    add_custom_target(flash
+        DEPENDS bin
+        COMMAND ${FLASH_SCRIPT} --config ${FLASH_FILE}
+    )
+endif(NOT TARGET flash)
+
+add_custom_target(flash_${EXE_NAME}
     DEPENDS bin
-    COMMAND ${FLASH_SCRIPT} --config ${FLASH_FILE}
+    COMMAND ${FLASH_SCRIPT} ${EXE_PATH} ${FLASH_ADDR} ${FLASH_CFG}
     )
 
 set(DEBUG_CMD "${CMAKE_GDB}" -tui -ex "target remote localhost:3333"
-    -ex "set remote hardware-breakpoint-limit 6"
-    -ex "set remote hardware-watchpoint-limit 4"
-    "${PROJECT_BINARY_DIR}/${EXE_NAME}")
+    -ex "set remote hardware-breakpoint-limit ${DEBUG_BREAKPOINT_LIMIT}"
+    -ex "set remote hardware-watchpoint-limit ${DEBUG_WATCHPOINT_LIMIT}"
+    "${ELF_PATH}")
 
-
-add_custom_target(debug
+add_custom_target(debug_${EXE_NAME}
     DEPENDS bin
     COMMAND ${DEBUG_CMD})
+
+if(NOT TARGET debug)
+    add_custom_target(debug
+        DEPENDS debug_${EXE_NAME}
+    )
+endif(NOT TARGET debug)
 
