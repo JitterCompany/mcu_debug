@@ -107,17 +107,17 @@ if not openocdFound:
     time.sleep(0.1)
 
 tn = Telnet(args.ip, args.port)
-r = tn.expect(['Open On-Chip Debugger'], 5)
+r = tn.expect([b'Open On-Chip Debugger'], 5)
 if r[0] != 0:
     print ("ERROR starting OpenOCD:")
     print(r)
 
-tn.write(cmd_start + '\n')
+tn.write(str.encode(cmd_start + '\n'))
 for cmd in cmd_flash:
 
-    tn.write(cmd[0] + '\n')
-    tn.write(cmd[1] + '\n')
-    r = tn.expect(['verified', 'error', 'checksum', 'mismatch'], 5)
+    tn.write(str.encode(cmd[0] + '\n'))
+    tn.write(str.encode(cmd[1] + '\n'))
+    r = tn.expect([str.encode(s) for s in ['verified', 'error', 'checksum', 'mismatch']], 5)
     done = (r[0] == 0) # wait for 'verified'
 
     if done:
@@ -125,10 +125,10 @@ for cmd in cmd_flash:
     else:
         print('Flashing failed\n')
 time.sleep(0.01)
-tn.write(cmd_done + '\n')
+tn.write(str.encode(cmd_done + '\n'))
 time.sleep(0.01)
 if not openocdFound:
     print('shutdown openocd...')
-    tn.write(cmd_shutdown + '\n')
+    tn.write(str.encode(cmd_shutdown + '\n'))
 time.sleep(0.5)
 tn.sock.close()
