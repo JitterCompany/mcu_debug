@@ -58,13 +58,11 @@ set(FLASH_SCRIPT "${MODULE_DIR}/flash.py")
 
 if(NOT TARGET flash)
     add_custom_target(flash
-        DEPENDS bin
         COMMAND ${FLASH_SCRIPT} --config ${FLASH_FILE}
     )
 endif(NOT TARGET flash)
 
 add_custom_target(flash_${EXE_NAME}
-    DEPENDS bin
     COMMAND ${FLASH_SCRIPT} ${EXE_PATH} ${FLASH_ADDR} ${FLASH_CFG}
     )
 
@@ -74,7 +72,6 @@ set(DEBUG_CMD "${CMAKE_GDB}" -tui -ex "target remote localhost:3333"
     "${ELF_PATH}")
 
 add_custom_target(debug_${EXE_NAME}
-    DEPENDS bin
     COMMAND ${DEBUG_CMD})
 
 if(NOT TARGET debug)
