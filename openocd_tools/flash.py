@@ -73,7 +73,7 @@ else:
         
     
 cmd_start = 'reset init; halt'
-cmd_done = 'reset run;'
+cmd_done = 'core_reset;'    # should be implemented in the config file
 cmd_shutdown = 'shutdown'
 cmd_flash = []
 
