@@ -66,10 +66,17 @@ add_custom_target(flash_${EXE_NAME}
     COMMAND ${FLASH_SCRIPT} ${EXE_PATH} ${FLASH_ADDR} ${FLASH_CFG}
     )
 
-set(DEBUG_CMD "${CMAKE_GDB}" -tui -ex "target remote localhost:3333"
-    -ex "set remote hardware-breakpoint-limit ${DEBUG_BREAKPOINT_LIMIT}"
-    -ex "set remote hardware-watchpoint-limit ${DEBUG_WATCHPOINT_LIMIT}"
-    "${ELF_PATH}")
+if(CMAKE_GDB MATCHES "py$")
+    set(DEBUG_CMD "${CMAKE_GDB}" -ex "target remote localhost:3333"
+        -ex "set remote hardware-breakpoint-limit ${DEBUG_BREAKPOINT_LIMIT}"
+        -ex "set remote hardware-watchpoint-limit ${DEBUG_WATCHPOINT_LIMIT}"
+        "${ELF_PATH}")
+else()
+    set(DEBUG_CMD "${CMAKE_GDB}" -tui -ex "target remote localhost:3333"
+        -ex "set remote hardware-breakpoint-limit ${DEBUG_BREAKPOINT_LIMIT}"
+        -ex "set remote hardware-watchpoint-limit ${DEBUG_WATCHPOINT_LIMIT}"
+        "${ELF_PATH}")
+endif()
 
 add_custom_target(debug_${EXE_NAME}
     COMMAND ${DEBUG_CMD})
