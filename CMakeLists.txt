@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
 
 
-set(CPM_MODULE_NAME openocd_tools)
+set(CPM_MODULE_NAME mcu_debug)
 
 #-----------------------------------------------------------------------
 # Required CPM Setup - no need to modify - See: https://github.com/iauns/cpm
