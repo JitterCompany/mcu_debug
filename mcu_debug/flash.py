@@ -146,6 +146,7 @@ def flash_openocd(targets):
     return success
 
 
+default_blackmagic = "/dev/ttyBmpGdb"
 
 parser = argparse.ArgumentParser(description="Connects to a running \
         OpenOCD server via telnet to flash a target with a given \
@@ -166,9 +167,11 @@ parser.add_argument("-ip","--ip", type=str, help="The OpenOCD ip \
         address to connect to", default="localhost")
 parser.add_argument("-p","--port", type=int, help="The OpenOCD port to\
         connect to", default=4444)
-parser.add_argument("--blackmagic", type=str, help="The Blackmagic device file",
-        default="/dev/ttyBmpGdb")
+parser.add_argument("--blackmagic", nargs='?', type=str, help="The Blackmagic device file",
+        default=default_blackmagic)
 args = parser.parse_args()
+if not args.blackmagic:
+    args.blackmagic = default_blackmagic
 
 targets = []
 if not args.config is None:

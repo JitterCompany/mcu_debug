@@ -45,6 +45,8 @@ CPM_InitModule(${CPM_MODULE_NAME})
 # FLASH_CFG                 name of OpenOCD config file (e.g. lpc4337_swd)
 # FLASH_ADDR                memory address to write the binary to
 #                           (e.g. 0x1A00000000, see microcontroller datasheet)
+#
+# BLACKMAGIC_DEV            devicefile for the blackmagic probe (e.g. /dev/ttyACM0)
 
 # DEBUG_BREAKPOINT_LIMIT    maximum breakpoints supported (e.g. 6)
 # DEBUG_WATCHPOINT_LIMIT    maximum watchpoints supported (e.g. 4)
@@ -55,28 +57,20 @@ CPM_InitModule(${CPM_MODULE_NAME})
 
 set(MODULE_DIR "${CMAKE_CURRENT_LIST_DIR}/${CPM_MODULE_NAME}")
 set(FLASH_SCRIPT "${MODULE_DIR}/flash.py")
+set(DEBUG_SCRIPT "${MODULE_DIR}/debug.py")
 
 if(NOT TARGET flash)
     add_custom_target(flash
-        COMMAND ${FLASH_SCRIPT} --config ${FLASH_FILE}
+        COMMAND ${FLASH_SCRIPT} --config ${FLASH_FILE} --blackmagic ${BLACKMAGIC_DEV}
     )
 endif(NOT TARGET flash)
 
 add_custom_target(flash_${EXE_NAME}
-    COMMAND ${FLASH_SCRIPT} ${EXE_PATH} ${FLASH_ADDR} ${FLASH_CFG}
+    COMMAND ${FLASH_SCRIPT} ${EXE_PATH} ${FLASH_ADDR} ${FLASH_CFG} --blackmagic ${BLACKMAGIC_DEV}
     )
 
-if(CMAKE_GDB MATCHES "py$")
-    set(DEBUG_CMD "${CMAKE_GDB}" -ex "target remote localhost:3333"
-        -ex "set remote hardware-breakpoint-limit ${DEBUG_BREAKPOINT_LIMIT}"
-        -ex "set remote hardware-watchpoint-limit ${DEBUG_WATCHPOINT_LIMIT}"
-        "${ELF_PATH}")
-else()
-    set(DEBUG_CMD "${CMAKE_GDB}" -tui -ex "target remote localhost:3333"
-        -ex "set remote hardware-breakpoint-limit ${DEBUG_BREAKPOINT_LIMIT}"
-        -ex "set remote hardware-watchpoint-limit ${DEBUG_WATCHPOINT_LIMIT}"
-        "${ELF_PATH}")
-endif()
+set(DEBUG_CMD "${DEBUG_SCRIPT}" "${ELF_PATH}" --gdb "${CMAKE_GDB}" --blackmagic "${BLACKMAGIC_DEV}"
+   --breakpoints ${DEBUG_BREAKPOINT_LIMIT} --watchpoints ${DEBUG_WATCHPOINT_LIMIT})
 
 add_custom_target(debug_${EXE_NAME}
     COMMAND ${DEBUG_CMD})
