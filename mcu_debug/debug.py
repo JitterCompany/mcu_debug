@@ -13,21 +13,22 @@ from subprocess import STDOUT, PIPE, Popen
 def blackmagic_present(blackmagic_device):
     return os.path.exists(blackmagic_device)
 
-def debug_blackmagic(gdb, elf_file, blackmagic_device):
+def debug_blackmagic(gdb, elf_file, blackmagic_device, power_target=False):
     
     if not blackmagic_present(blackmagic_device):
         print("Warning: no blackmagic device found at '"
                 + blackmagic_device + "'")
         return False
 
-    args = [
-            gdb,
-            "-ex", "target extended-remote " + blackmagic_device,
-            "-ex", "monitor swdp_scan",
-            "-ex", "attach 1",
-            "-ex", "set mem inaccessible-by-default off",
-            elf_file
-            ]
+    args = [gdb]
+
+    args.extend(["-ex", "target extended-remote " + blackmagic_device])
+    if power_target:
+        args.extend(["-ex", "monitor tpwr enable"])
+    args.extend(["-ex", "monitor swdp_scan"])
+    args.extend(["-ex", "attach 1"])
+    args.extend(["-ex", "set mem inaccessible-by-default off"])
+    args.append(elf_file)
 
     # this never returns
     os.execvp(gdb, args)
@@ -59,8 +60,12 @@ parser = argparse.ArgumentParser(description="Debug via gdb, using \
 parser.add_argument("elf", nargs='?', help="The elf file corresponding to the code \
         on the device")
 parser.add_argument("--gdb", type=str, help="The GDB executable to use")
-parser.add_argument("--blackmagic", nargs='?', type=str, help="The Blackmagic device file",
+parser.add_argument("--blackmagic", nargs='?', type=str,
+        help="The Blackmagic device file",
         default=default_blackmagic)
+parser.add_argument("--power_target", nargs='?', type=str,
+        help="Provide power to the target board? yes/[no]",
+        default=None)
 parser.add_argument("--breakpoints", nargs='?', type=str, help="Maximum breakpoint count for OpenOCD",
         default=1)
 parser.add_argument("--watchpoints", nargs='?', type=str, help="Maximum watchpoint count for OpenOCD",
@@ -68,6 +73,11 @@ parser.add_argument("--watchpoints", nargs='?', type=str, help="Maximum watchpoi
 args = parser.parse_args()
 if not args.blackmagic:
     args.blackmagic = default_blackmagic
+
+if args.power_target and args.power_target == "yes":
+    args.power_target = True
+else:
+    args.power_target = False
 
 targets = []
 if args.elf is None:
@@ -83,7 +93,7 @@ if not os.path.exists(args.elf):
 
 if blackmagic_present(args.blackmagic):
     print("\n== Debugging via BlackMagic... ==\n")
-    if debug_blackmagic(args.gdb, args.elf, args.blackmagic):
+    if debug_blackmagic(args.gdb, args.elf, args.blackmagic, args.power_target):
         print("\n== End of debug session ==\n\n")
         sys.exit()
 

@@ -47,6 +47,7 @@ CPM_InitModule(${CPM_MODULE_NAME})
 #                           (e.g. 0x1A00000000, see microcontroller datasheet)
 #
 # BLACKMAGIC_DEV            devicefile for the blackmagic probe (e.g. /dev/ttyACM0)
+# POWER_TARGET              provide power to debug/flash target ("yes" or "no")
 
 # DEBUG_BREAKPOINT_LIMIT    maximum breakpoints supported (e.g. 6)
 # DEBUG_WATCHPOINT_LIMIT    maximum watchpoints supported (e.g. 4)
@@ -55,22 +56,30 @@ CPM_InitModule(${CPM_MODULE_NAME})
 # Project sources / settings
 #-----------------------------------------------------------------------
 
+
 set(MODULE_DIR "${CMAKE_CURRENT_LIST_DIR}/${CPM_MODULE_NAME}")
 set(FLASH_SCRIPT "${MODULE_DIR}/flash.py")
 set(DEBUG_SCRIPT "${MODULE_DIR}/debug.py")
 
 if(NOT TARGET flash)
     add_custom_target(flash
-        COMMAND ${FLASH_SCRIPT} --config ${FLASH_FILE} --blackmagic ${BLACKMAGIC_DEV}
+        COMMAND ${FLASH_SCRIPT} --config ${FLASH_FILE}
+        --blackmagic ${BLACKMAGIC_DEV}
+        --power_target "${POWER_TARGET}"
     )
 endif(NOT TARGET flash)
 
 add_custom_target(flash_${EXE_NAME}
-    COMMAND ${FLASH_SCRIPT} ${EXE_PATH} ${FLASH_ADDR} ${FLASH_CFG} --blackmagic ${BLACKMAGIC_DEV}
+    COMMAND ${FLASH_SCRIPT} ${EXE_PATH} ${FLASH_ADDR} ${FLASH_CFG}
+    --blackmagic ${BLACKMAGIC_DEV}
+    --power_target "${POWER_TARGET}"
     )
 
-set(DEBUG_CMD "${DEBUG_SCRIPT}" "${ELF_PATH}" --gdb "${CMAKE_GDB}" --blackmagic "${BLACKMAGIC_DEV}"
-   --breakpoints ${DEBUG_BREAKPOINT_LIMIT} --watchpoints ${DEBUG_WATCHPOINT_LIMIT})
+set(DEBUG_CMD "${DEBUG_SCRIPT}" "${ELF_PATH}" --gdb "${CMAKE_GDB}"
+    --blackmagic "${BLACKMAGIC_DEV}"
+    --power_target "${POWER_TARGET}"
+   --breakpoints ${DEBUG_BREAKPOINT_LIMIT}
+   --watchpoints ${DEBUG_WATCHPOINT_LIMIT})
 
 add_custom_target(debug_${EXE_NAME}
     COMMAND ${DEBUG_CMD})

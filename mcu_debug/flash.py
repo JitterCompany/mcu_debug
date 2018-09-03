@@ -14,7 +14,7 @@ from subprocess import PIPE, Popen
 def blackmagic_present(blackmagic_device):
     return os.path.exists(blackmagic_device)
 
-def flash_blackmagic(targets, blackmagic_device):
+def flash_blackmagic(targets, blackmagic_device, power_target=False):
     
     if not blackmagic_present(blackmagic_device):
         print("Warning: no blackmagic device found at '"
@@ -40,6 +40,8 @@ def flash_blackmagic(targets, blackmagic_device):
 
         cmd = "arm-none-eabi-gdb -nx --batch"
         cmd+= " -ex 'target extended-remote " + blackmagic_device + "'"
+        if power_target:
+            cmd+= " -ex 'monitor tpwr enable'"
         cmd+= " -ex 'monitor swdp_scan'"
         cmd+= " -ex 'attach 1'"
         cmd+= " -ex 'load'"
@@ -62,9 +64,18 @@ def flash_blackmagic(targets, blackmagic_device):
         ok = 0
         error = 0
         for line in result.split("\n"):
-            if re.match(r'Section .*: matched.', line):
+            if not error and re.match(r'Available Targets:', line):
                 ok+= 1
                 print("OK " + str(ok) + ":", line)
+
+            if not error and re.match(r'Section .*: matched.', line):
+                ok+= 1
+                print("OK " + str(ok) + ":", line)
+
+            if re.match(r'.*failed.*', line):
+                error+= 1
+                print("ERROR " + str(error) + ":", line)
+
             if re.match(r'Section .*: MIS-MATCHED', line):
                 error+= 1
                 print("ERROR " + str(error) + ":", line)
@@ -169,9 +180,18 @@ parser.add_argument("-p","--port", type=int, help="The OpenOCD port to\
         connect to", default=4444)
 parser.add_argument("--blackmagic", nargs='?', type=str, help="The Blackmagic device file",
         default=default_blackmagic)
+parser.add_argument("--power_target", nargs='?', type=str,
+        help="Provide power to the target board? yes/[no]",
+        default=None)
 args = parser.parse_args()
+
 if not args.blackmagic:
     args.blackmagic = default_blackmagic
+
+if args.power_target and args.power_target == "yes":
+    args.power_target = True
+else:
+    args.power_target = False
 
 targets = []
 if not args.config is None:
@@ -221,7 +241,7 @@ else:
 print("\n\n")
 if blackmagic_present(args.blackmagic):
     print("== Flashing via BlackMagic... ==\n")
-    if flash_blackmagic(targets, args.blackmagic):
+    if flash_blackmagic(targets, args.blackmagic, args.power_target):
         print("\n== OK! Flashing succesfull! ==\n\n")
         sys.exit()
 
@@ -232,7 +252,7 @@ else:
         sys.exit()
 
 print("\n== Error: flashing failed ==")
-print("Please check if a BlackMagic probe \
-        or OpenOCD-compatible debugger is connected...\n")
+print("Please check if a BlackMagic probe "
+        "or OpenOCD-compatible debugger is connected...\n")
 
     
